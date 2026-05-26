@@ -1,0 +1,225 @@
+@baseUrl = http://localhost:3000
+@contentType = application/json
+
+###############################################################
+# GÊNEROS
+###############################################################
+
+### [1] Criar gênero – Ação teste
+# @name createGeneroAcao
+POST {{baseUrl}}/generos
+Content-Type: {{contentType}}
+
+{
+  "nome": "Ação Teste API"
+}
+
+### [2] Criar gênero – RPG teste
+# @name createGeneroRpg
+POST {{baseUrl}}/generos
+Content-Type: {{contentType}}
+
+{
+  "nome": "RPG Teste API"
+}
+
+### [3] Listar todos os gêneros
+GET {{baseUrl}}/generos
+
+### [4] Buscar gênero por ID
+@generoId = {{createGeneroAcao.response.body.$.id}}
+GET {{baseUrl}}/generos/{{generoId}}
+
+### [5] Atualizar gênero
+PUT {{baseUrl}}/generos/{{generoId}}
+Content-Type: {{contentType}}
+
+{
+  "nome": "Ação e Aventura Teste API"
+}
+
+### [6] Gênero não encontrado (404)
+GET {{baseUrl}}/generos/999999
+
+### [7] Criar gênero com nome duplicado (409)
+POST {{baseUrl}}/generos
+Content-Type: {{contentType}}
+
+{
+  "nome": "RPG Teste API"
+}
+
+### [8] Criar gênero sem nome (400 Zod)
+POST {{baseUrl}}/generos
+Content-Type: {{contentType}}
+
+{
+  "nome": ""
+}
+
+###############################################################
+# PLATAFORMAS
+###############################################################
+
+### [9] Criar plataforma – PS5 teste
+# @name createPS5
+POST {{baseUrl}}/plataformas
+Content-Type: {{contentType}}
+
+{
+  "nome": "PS5 Teste API"
+}
+
+### [10] Criar plataforma – PC teste
+# @name createPC
+POST {{baseUrl}}/plataformas
+Content-Type: {{contentType}}
+
+{
+  "nome": "PC Teste API"
+}
+
+### [11] Criar plataforma – Nintendo Switch teste
+# @name createSwitch
+POST {{baseUrl}}/plataformas
+Content-Type: {{contentType}}
+
+{
+  "nome": "Nintendo Switch Teste API"
+}
+
+### [12] Listar todas as plataformas
+GET {{baseUrl}}/plataformas
+
+### [13] Buscar plataforma por ID
+@plataformaId = {{createPS5.response.body.$.id}}
+GET {{baseUrl}}/plataformas/{{plataformaId}}
+
+### [14] Atualizar plataforma
+PUT {{baseUrl}}/plataformas/{{plataformaId}}
+Content-Type: {{contentType}}
+
+{
+  "nome": "PlayStation 5 Teste API"
+}
+
+### [15] Plataforma não encontrada (404)
+GET {{baseUrl}}/plataformas/999999
+
+###############################################################
+# JOGOS
+###############################################################
+
+### [16] Criar jogo – Aventura de teste
+# @name createGodOfWar
+POST {{baseUrl}}/jogos
+Content-Type: {{contentType}}
+
+{
+  "titulo": "Jogo Teste API 1",
+  "idGenero": {{createGeneroAcao.response.body.$.id}}
+}
+
+### [17] Criar jogo – RPG de teste
+# @name createEldenRing
+POST {{baseUrl}}/jogos
+Content-Type: {{contentType}}
+
+{
+  "titulo": "Jogo Teste API 2",
+  "idGenero": {{createGeneroRpg.response.body.$.id}}
+}
+
+### [18] Listar todos os jogos (com gênero e plataformas)
+GET {{baseUrl}}/jogos
+
+### [19] Buscar jogo por ID
+@jogoId = {{createGodOfWar.response.body.$.id}}
+GET {{baseUrl}}/jogos/{{jogoId}}
+
+### [20] Atualizar título do jogo
+PUT {{baseUrl}}/jogos/{{jogoId}}
+Content-Type: {{contentType}}
+
+{
+  "titulo": "Jogo Teste API 1 - Atualizado"
+}
+
+### [21] Jogo não encontrado (404)
+GET {{baseUrl}}/jogos/999999
+
+### [22] Criar jogo com gênero inexistente (404)
+POST {{baseUrl}}/jogos
+Content-Type: {{contentType}}
+
+{
+  "titulo": "Jogo Inexistente",
+  "idGenero": 999999
+}
+
+### [23] Criar jogo sem título (400 Zod)
+POST {{baseUrl}}/jogos
+Content-Type: {{contentType}}
+
+{
+  "idGenero": 1
+}
+
+###############################################################
+# RELACIONAMENTO JOGO ↔ PLATAFORMA
+###############################################################
+
+### [24] Vincular PS5 ao God of War
+@pcId = {{createPC.response.body.$.id}}
+POST {{baseUrl}}/jogos/{{jogoId}}/plataformas
+Content-Type: {{contentType}}
+
+{
+  "plataformaId": {{plataformaId}}
+}
+
+### [25] Vincular PC ao God of War
+POST {{baseUrl}}/jogos/{{jogoId}}/plataformas
+Content-Type: {{contentType}}
+
+{
+  "plataformaId": {{pcId}}
+}
+
+### [26] Buscar jogo com plataformas vinculadas
+GET {{baseUrl}}/jogos/{{jogoId}}
+
+### [27] Vincular plataforma inexistente (404)
+POST {{baseUrl}}/jogos/{{jogoId}}/plataformas
+Content-Type: {{contentType}}
+
+{
+  "plataformaId": 999999
+}
+
+### [28] Desvincular PC do God of War
+DELETE {{baseUrl}}/jogos/{{jogoId}}/plataformas/{{pcId}}
+
+### [29] Listar jogo após desvinculação
+GET {{baseUrl}}/jogos/{{jogoId}}
+
+###############################################################
+# DELEÇÕES (devem respeitar regras de integridade)
+###############################################################
+
+### [30] Deletar gênero com jogos associados (409)
+DELETE {{baseUrl}}/generos/{{createGeneroAcao.response.body.$.id}}
+
+### [31] Deletar plataforma com jogos associados (409)
+DELETE {{baseUrl}}/plataformas/{{plataformaId}}
+
+### [32] Deletar jogo
+@eldenRingId = {{createEldenRing.response.body.$.id}}
+DELETE {{baseUrl}}/jogos/{{eldenRingId}}
+
+### [33] Deletar plataforma sem jogos (PC — já desvinculado)
+DELETE {{baseUrl}}/plataformas/{{pcId}}
+
+### [34] Deletar plataforma Nintendo Switch
+@switchId = {{createSwitch.response.body.$.id}}
+DELETE {{baseUrl}}/plataformas/{{switchId}}
